@@ -1,11 +1,12 @@
 import os
 from glob import iglob
 from typing import Optional, Any
+from tqdm import trange
 
 
 class Adaptor:
 
-    """Small class dealing with inconsistent file names and header of USDA-ARS data in the "header and values" format of the ISMN database. 
+    """Small class dealing with inconsistent file names and header of USDA-ARS data in the "header and values" format of the ISMN database.
     This class is not intended for other manipulations, but can serve as starting point for such.
     :param database_name: The name of the database
     :type database_name: str
@@ -25,7 +26,10 @@ class Adaptor:
             self.destination: str = os.path.join(self.database_path, self.pattern)
             return True
         else:
-            raise f'\n\tThe specified network "{self.pattern}" does not exist in the database {self.database_name}.\n'
+            print(
+                f'\n\tThe specified network "{self.pattern}" does not exist in the database "{self.database_name}".\n'
+            )
+            exit(1)
 
     def get_stm_files(self) -> list:
         """Returns a list of all stm files."""
@@ -43,7 +47,8 @@ class Adaptor:
     def adapt_files(self) -> None:
         """Renames the files and adapts the header"""
         stm_files = self.get_stm_files()
-        for stm in stm_files:
+        for s in trange(len(stm_files), desc="Iterating over .stm files"):
+            stm = stm_files[s]
             splitted = stm.split("(2.5-Volt)---")
             try:
                 new = f"{splitted[0]}2500-mV-{splitted[1]}"
@@ -67,5 +72,3 @@ class Adaptor:
                     f'\n\tThe adaptions were not applied to file "{stm}".\n\tMaybe the intended adaptions were already implemented? \
                     \n\tPlease pay attention to this.\n'
                 )
-
-
